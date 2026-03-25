@@ -63,6 +63,14 @@ body {
   100% { transform: translateY(-115vh) rotate(15deg) scale(1.2); opacity: 0; }
 }
 
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+  100% { transform: translateX(0); }
+}
+.shake-it { animation: shake 0.2s ease-in-out; }
+
 /* Custom timings for the 12 spans in your HTML */
 .hearts-bg span:nth-child(4n+1) { animation-duration: 12s; left: 10%; }
 .hearts-bg span:nth-child(4n+2) { animation-duration: 15s; left: 35%; animation-delay: 2s; }
