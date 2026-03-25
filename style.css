@@ -1,0 +1,111 @@
+:root {
+    --glass: rgba(255, 255, 255, 0.1);
+    --border: rgba(255, 255, 255, 0.2);
+    --glow: rgba(0, 212, 255, 0.5);
+}
+
+body {
+    background: linear-gradient(45deg, #0f0c29, #302b63, #24243e);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* Glassmorphism Card */
+.calculator-card {
+    background: var(--glass);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid var(--border);
+    border-radius: 25px;
+    padding: 30px;
+    width: 320px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    text-align: center;
+}
+
+/* Digital Display */
+.display {
+    background: rgba(0, 0, 0, 0.3);
+    height: 70px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 20px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.num {
+    font-family: 'Orbitron', monospace;
+    color: #00d4ff;
+    font-size: 2rem;
+    text-shadow: 0 0 10px var(--glow);
+    display: none; /* Hidden by default */
+}
+
+/* THE CSS LOGIC HACK */
+/* If radio 1 is checked, show span n1, etc. */
+#val-0:checked ~ .calculator-card .n0 { display: block; }
+#val-1:checked ~ .calculator-card .n1 { display: block; }
+#val-2:checked ~ .calculator-card .n2 { display: block; }
+#val-3:checked ~ .calculator-card .n3 { display: block; }
+#val-4:checked ~ .calculator-card .n4 { display: block; }
+
+/* Grid Layout */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.btn {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    padding: 18px;
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: bold;
+    user-select: none;
+}
+
+.btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 15px var(--glow);
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.btn-clear { color: #ff5e5e; }
+.btn-equals {
+    grid-column: span 2;
+    background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+    border: none;
+}
+
+.btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+input[type="radio"] {
+    display: none; /* Hide the actual radio buttons */
+}
+
+.logic-note {
+    color: rgba(255,255,255,0.4);
+    font-size: 0.7rem;
+    margin-top: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
