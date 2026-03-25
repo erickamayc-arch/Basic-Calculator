@@ -1,115 +1,214 @@
-/* ============================================================
-   HUGOT CALCULATOR — cal.js
-   ============================================================ */
+'use strict';
 
-const screen = document.getElementById('screen');
+// ── State ──────────────────────────────────────────────────
+const state = {
+  current:     '0',
+  previous:    '',
+  operator:    null,
+  shouldReset: false,
+};
+
+// ── DOM References ─────────────────────────────────────────
+const screen       = document.getElementById('screen');
 const equationLine = document.getElementById('equationLine');
-const messageText = document.getElementById('messageText');
+// FIXED: Typo was "dcument"
+const messageText  = document.getElementById('messageText'); 
 const hugotOverlay = document.getElementById('hugotOverlay');
-const hugotClose = document.getElementById('hugotClose');
+const hugotClose   = document.getElementById('hugotClose');
+const allBtns      = document.querySelectorAll('.btn');
 
-let currentInput = '0';
-let previousInput = '';
-let operator = null;
-let shouldResetScreen = false;
-
-// --- Hugot Database ---
-const hugotLines = [
-    "Buti pa yung math, may logic. Tayo, wala.",
-    "Ang hirap mag-solve ng problem na hindi naman sa'yo.",
-    "Sana yung sakit, naki-clear din ng AC button.",
-    "Bakit pagdating sa'yo, laging laging 'Error'?",
-    "Zero. Parang yung chance na maging tayo ulit.",
-    "Nahanap mo na ba yung 'X' mo?"
+// ── Rotating banner quotes ─────────────────────────────────
+const bannerQuotes = [
+  'ikaw lang ang sagot ko sa lahat ng tanong...',
+  'bakit pa mag-calculator kung ikaw pa rin ang kulang?',
+  'mas mahirap kalkulahin ang pagmamahal mo...',
+  'kahit anong gawin ko, ikaw pa rin ang resulta.',
+  'hindi ko na kailangang mag-isip kung nandito ka.',
+  'sana ako pa rin ang nasa memory mo.',
 ];
+let quoteIndex = 0;
 
-// --- Event Listeners ---
-document.querySelectorAll('.btn').forEach(button => {
-    button.addEventListener('click', () => {
-        const action = button.dataset.action;
-        const value = button.dataset.value;
-
-        if (action === 'number') appendNumber(value);
-        if (action === 'operator') setOperator(value);
-        if (action === 'equals') calculate();
-        if (action === 'clear') clearAll();
-        if (action === 'decimal') appendDecimal();
-        
-        // Randomly change the banner message on click
-        if (Math.random() > 0.8) {
-            messageText.innerText = hugotLines[Math.floor(Math.random() * hugotLines.length)];
-        }
-    });
-});
-
-// --- Functions ---
-function appendNumber(num) {
-    if (screen.innerText === '0' || shouldResetScreen) {
-        screen.innerText = num;
-        shouldResetScreen = false;
-    } else {
-        screen.innerText += num;
-    }
+function rotateBanner() {
+  quoteIndex = (quoteIndex + 1) % bannerQuotes.length;
+  messageText.style.opacity = '0';
+  setTimeout(() => {
+    messageText.textContent = bannerQuotes[quoteIndex];
+    messageText.style.opacity = '1';
+  }, 400);
 }
 
-function setOperator(op) {
-    operator = op;
-    previousInput = screen.innerText;
-    equationLine.innerText = `${previousInput} ${op}`;
-    shouldResetScreen = true;
-}
+setInterval(rotateBanner, 5000);
 
-function calculate() {
-    let result;
-    const prev = parseFloat(previousInput);
-    const current = parseFloat(screen.innerText);
+// ── Update Display ─────────────────────────────────────────
+function updateScreen() {
+  const display = formatDisplay(state.current);
+  screen.textContent = display;
 
-    if (isNaN(prev) || isNaN(current)) return;
-
-    // The "Broken Math" Logic
-    if (operator === '÷' && current === 0) {
-        showHugot("WALANG FOREVER", "Hindi ma-divide ang atensyon mo sa amin.");
-        clearAll();
-        return;
-    }
-
-    switch (operator) {
-        case '+': result = prev + current; break;
-        case '−': result = prev - current; break;
-        case '×': result = prev * current; break;
-        case '÷': result = prev / current; break;
-        default: return;
-    }
-
-    equationLine.innerText = `${prev} ${operator} ${current} =`;
-    screen.innerText = result;
-    
-    // Trigger Overlay on special results
-    if (result === 143) {
-        showHugot("I LOVE YOU", "Sana totoo na lang 'to, hindi lang math.");
-    }
-    
-    shouldResetScreen = true;
-}
-
-function clearAll() {
-    screen.innerText = '0';
+  if (state.previous && state.operator) {
+    // FIXED: Used backticks for Template Literals
+    equationLine.textContent = `${formatDisplay(state.previous)} ${state.operator}`;
+  } else {
     equationLine.innerHTML = '&nbsp;';
-    previousInput = '';
-    operator = null;
-    // Add a small shake to the calculator
-    document.querySelector('.calculator').classList.add('shake-it');
-    setTimeout(() => document.querySelector('.calculator').classList.remove('shake-it'), 500);
+  }
+
+  // Bump animation
+  screen.classList.remove('bump');
+  void screen.offsetWidth; 
+  screen.classList.add('bump');
 }
 
-// --- Popup Logic ---
-function showHugot(main, accent) {
-    const card = document.getElementById('hugotCard');
-    card.querySelector('.hugot-main').innerText = main;
-    card.querySelector('.hugot-accent').innerText = accent;
-    hugotOverlay.classList.add('show');
+function formatDisplay(val) {
+  if (val === 'Error' || val === '') return val;
+  if (val.endsWith('.')) return val; 
+
+  const n = parseFloat(val);
+  if (isNaN(n)) return val;
+
+  const parts = val.split('.');
+  const intPart = parseInt(parts[0], 10).toLocaleString('en-PH');
+
+  if (parts.length > 1) {
+    return intPart + '.' + parts[1];
+  }
+  return intPart;
 }
 
-hugotClose.addEventListener('click', () => {
-    hugotOverlay.classList.remove('show');
+// ── Logic Functions ────────────────────────────────────────
+function inputNumber(digit) {
+  if (state.current === '0' || state.shouldReset) {
+    state.current     = digit;
+    state.shouldReset = false;
+  } else {
+    if (state.current.replace('-', '').length >= 12) return;
+    state.current += digit;
+  }
+  updateScreen();
+}
+
+function inputDecimal() {
+  if (state.shouldReset) {
+    state.current     = '0.';
+    state.shouldReset = false;
+    updateScreen();
+    return;
+  }
+  if (!state.current.includes('.')) {
+    state.current += '.';
+    updateScreen();
+  }
+}
+
+function inputOperator(op, activeBtn) {
+  document.querySelectorAll('.btn-op').forEach(b => b.classList.remove('selected'));
+
+  if (state.operator && !state.shouldReset) {
+    performCalculation();
+  }
+
+  state.previous    = state.current;
+  state.operator    = op;
+  state.shouldReset = true;
+
+  if (activeBtn) activeBtn.classList.add('selected');
+  updateScreen();
+}
+
+function inputEquals() {
+  document.querySelectorAll('.btn-op').forEach(b => b.classList.remove('selected'));
+  if (!state.operator || !state.previous) return;
+
+  const success = performCalculation();
+  if (success) {
+    showHugot();
+  }
+}
+
+function performCalculation() {
+  const prev = parseFloat(state.previous);
+  const curr = parseFloat(state.current);
+
+  if (isNaN(prev) || isNaN(curr)) return false;
+
+  let result;
+  switch (state.operator) {
+    case '+': result = prev + curr; break;
+    case '−': result = prev - curr; break;
+    case '×': result = prev * curr; break;
+    case '÷':
+      if (curr === 0) {
+        state.current = 'Error';
+        state.operator = null;
+        state.previous = '';
+        state.shouldReset = true;
+        updateScreen();
+        return false;
+      }
+      result = prev / curr;
+      break;
+    default: return false;
+  }
+
+  const cleaned = parseFloat(result.toPrecision(12));
+  state.current     = String(cleaned);
+  state.previous    = '';
+  state.operator    = null;
+  state.shouldReset = true;
+
+  updateScreen();
+  return true;
+}
+
+function inputClear() {
+  state.current     = '0';
+  state.previous    = '';
+  state.operator    = null;
+  state.shouldReset = false;
+  document.querySelectorAll('.btn-op').forEach(b => b.classList.remove('selected'));
+  updateScreen();
+}
+
+function inputSign() {
+  if (state.current === '0' || state.current === 'Error') return;
+  state.current = state.current.startsWith('-') ? state.current.slice(1) : '-' + state.current;
+  updateScreen();
+}
+
+function inputPercent() {
+  const n = parseFloat(state.current);
+  if (isNaN(n)) return;
+  state.current = String(n / 100);
+  updateScreen();
+}
+
+// ── Hugot Popup ────────────────────────────────────────────
+function showHugot() {
+  hugotOverlay.classList.add('show');
+}
+
+function hideHugot() {
+  hugotOverlay.classList.remove('show');
+}
+
+hugotClose.addEventListener('click', hideHugot);
+hugotOverlay.addEventListener('click', (e) => {
+  if (e.target === hugotOverlay) hideHugot();
 });
+
+// ── Event Listeners ────────────────────────────────────────
+allBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const { action, value } = btn.dataset;
+    switch (action) {
+      case 'number':   inputNumber(value); break;
+      case 'decimal':  inputDecimal(); break;
+      case 'operator': inputOperator(value, btn); break;
+      case 'equals':   inputEquals(); break;
+      case 'clear':    inputClear(); break;
+      case 'sign':     inputSign(); break;
+      case 'percent':  inputPercent(); break;
+    }
+  });
+});
+
+// Initial call
+updateScreen();
