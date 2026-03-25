@@ -119,9 +119,30 @@ function inputEquals() {
 
   const success = performCalculation();
   if (success) {
-    showHugot();
+    // Pass the result to the hugot function
+    showHugot(state.current);
   }
 }
+
+function showHugot(resultValue) {
+  const result = parseFloat(resultValue);
+  let message = "Sana ang pag-ibig parang Math, may malinaw na solusyon.";
+
+  if (result === 0) {
+    message = "0? Parang tayo... nothing.";
+  } else if (result < 0) {
+    message = "Negative? Ganyan naman palagi ang kinalalabasan natin.";
+  } else if (result > 1000) {
+    message = "Masyadong malaki ang value mo sa akin, 'di ko na kaya kalkulahin.";
+  }
+
+  // Assuming you have an element inside hugotOverlay for text
+  const hugotText = document.getElementById('hugotText');
+  if (hugotText) hugotText.textContent = message;
+
+  hugotOverlay.classList.add('show');
+}
+
 
 function performCalculation() {
   const prev = parseFloat(state.previous);
