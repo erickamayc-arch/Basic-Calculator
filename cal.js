@@ -19,7 +19,7 @@ const allBtns      = document.querySelectorAll('.btn');
 
 // ── Rotating banner quotes ─────────────────────────────────
 const bannerQuotes = [
-  'ikaw lang ang sagot ko sa lahat ng tanong...',
+  'ikaw lang ang sagot ko sa lahat ng tanong....',
   'bakit pa mag-calculator kung ikaw pa rin ang kulang?',
   'mas mahirap kalkulahin ang pagmamahal mo...',
   'kahit anong gawin ko, ikaw pa rin ang resulta.',
