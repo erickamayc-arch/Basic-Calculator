@@ -231,5 +231,5 @@ allBtns.forEach(btn => {
   });
 });
 
-// Initial call
+
 updateScreen();
